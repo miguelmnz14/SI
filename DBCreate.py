@@ -1,16 +1,14 @@
 import sqlite3
 import pandas as pd
-import json
+import simplejson
 
 f=open('datosDB.json', 'r')
-datos=json.load(f)
+datos=simplejson.load(f)
 print(datos)
-print(datos["fichajes"])
 
-
-con = sqlite3.connect('datos.db')
+con = sqlite3.connect('databaseP1.db')
 cur = con.cursor()
-cur.execute("DROP TABLE tickets_emitidos")
+cur.execute("DROP TABLE IF EXISTS tickets_emitidos")
 cur.execute ("CREATE TABLE tickets_emitidos ("
     "id_ticket INTEGER,"
 	"cliente INTEGER,"
@@ -21,33 +19,33 @@ cur.execute ("CREATE TABLE tickets_emitidos ("
 	"tipo_incidencia INTEGER"
     ");")
 
-cur.execute("DROP TABLE empleados")
-cur.execute ("CREATE TABLE empleados ("
+cur.execute("DROP TABLE IF EXISTS empleados")
+cur.execute("CREATE TABLE empleados ("
 	"id_emp INTEGER,"
 	"nombre TEXT,"
 	"nivel INTEGER,"
-	"fecha_contrato TEXT,"
+	"fecha_contrato TEXT"
     ");")
 
-cur.execute("DROP TABLE tipos_incidentes")
+cur.execute("DROP TABLE IF EXISTS tipos_incidentes")
 cur.execute ("CREATE TABLE tipos_incidentes ("
 	"id_cli INTEGER,"
-	"nombre TEXT,"
+	"nombre TEXT"
     ");")
 
-cur.execute("DROP TABLE contactos_con_empleados")
+cur.execute("DROP TABLE IF EXISTS contactos_con_empleados")
 cur.execute("CREATE TABLE contactos_con_empleados ("
     "id_emp INTEGER,"
     "fecha TEXT,"
-    "tiempo NUMERIC,"
+    "tiempo NUMERIC"
     ");")
 
-cur.execute("DROP TABLE clientes")
+cur.execute("DROP TABLE IF EXISTS clientes")
 cur.execute("CREATE TABLE clientes ("
     "id_cli INTEGER,"
     "nombre TEXT,"
     "telefono NUMERIC,"
-    "provincia TEXT,"
+    "provincia TEXT"
     ");")
 
 con.commit()
