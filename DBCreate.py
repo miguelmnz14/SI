@@ -4,7 +4,6 @@ import simplejson
 
 with open('datosDB.json', 'r') as f:
     datos = simplejson.load(f)
-print(datos)
 
 def insertar_datos():
     for cliente in datos["clientes"]:
@@ -93,3 +92,66 @@ cur.executescript("""
 
 
 insertar_datos()
+
+
+'''
+
+EJERCICIO 2
+
+'''
+def ejecutar_queries_ej2():
+    metricas = {}
+    
+    # 1. Numero de muestras totales.
+    query = "SELECT COUNT(*) AS total FROM tickets_emitidos;"
+    metricas['total_muestras'] = pd.read_sql(query, con).iloc[0]['total']
+    
+    # 2. Media y desviación estándar del total de incidentes en los que ha habido una valoración mayor o igual a 5 por parte del cliente
+    query = """SELECT satisfaccion_cliente FROM tickets_emitidos 
+               WHERE satisfaccion_cliente >= 5;"""
+    df = pd.read_sql(query, con)
+    metricas['media_valoracion'] = df['satisfaccion_cliente'].mean()
+    metricas['std_valoracion'] = df['satisfaccion_cliente'].std()
+    
+    # 3. Media y desviación estándar del total del número de incidentes por cliente.
+    query = """SELECT cliente, COUNT(*) AS num_incidentes 
+               FROM tickets_emitidos GROUP BY cliente;"""
+    df = pd.read_sql(query, con)
+    metricas['media_incidentes_cliente'] = df['num_incidentes'].mean()
+    metricas['std_incidentes_cliente'] = df['num_incidentes'].std()
+    
+    # 4. Media y desviación estándar del número de horas totales realizadas en cada incidente.
+    query = """SELECT id_ticket, SUM(tiempo) AS total_horas 
+               FROM contactos_con_empleados GROUP BY id_ticket;"""
+    df = pd.read_sql(query, con)
+    metricas['media_horas_incidente'] = df['total_horas'].mean()
+    metricas['std_horas_incidente'] = df['total_horas'].std()
+    
+    # 5. Valor mínimo y valor máximo del total de horas realizadas por los empleados.
+    query = """SELECT id_emp, SUM(tiempo) AS total_horas 
+               FROM contactos_con_empleados GROUP BY id_emp;"""
+    df = pd.read_sql(query, con)
+    metricas['min_horas_empleado'] = df['total_horas'].min()
+    metricas['max_horas_empleado'] = df['total_horas'].max()
+    
+    # 6. Valor mínimo y valor máximo del )empo entre apertura y cierre de incidente.
+    query = """SELECT id_ticket, 
+               (julianday(fecha_cierre) - julianday(fecha_apertura)) * 24 AS horas 
+               FROM tickets_emitidos WHERE fecha_cierre IS NOT NULL;"""
+    df = pd.read_sql(query, con)
+    metricas['min_tiempo_cierre'] = df['horas'].min()
+    metricas['max_tiempo_cierre'] = df['horas'].max()
+    
+    # 7. Valor mínimo y valor máximo del número de incidentes atendidos por cada empleado
+    query = """SELECT id_emp, COUNT(DISTINCT id_ticket) AS total 
+               FROM contactos_con_empleados GROUP BY id_emp;"""
+    df = pd.read_sql(query, con)
+    metricas['min_incidentes_empleado'] = df['total'].min()
+    metricas['max_incidentes_empleado'] = df['total'].max()
+    
+    return metricas
+
+resultados = ejecutar_queries_ej2()
+for sentencia, result in resultados.items():
+    print(f"{sentencia}: {result}")
+
