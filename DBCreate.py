@@ -155,3 +155,70 @@ resultados = ejecutar_queries_ej2()
 for sentencia, result in resultados.items():
     print(f"{sentencia}: {result}")
 
+'''
+
+
+Ejercicio 3
+
+
+'''
+
+
+def ejecutar_queries_ej3():
+    # 1. Obtener el ID del tipo de incidente "Fraude"
+    query = "SELECT id_tipo FROM tipos_incidentes WHERE nombre = 'Fraude';"
+    id_fraude = pd.read_sql(query, con).iloc[0]['id_tipo']
+
+    agrupaciones = {
+        "empleado": "e.id_emp",
+        "nivel_empleado": "e.nivel",
+        "cliente": "t.cliente",
+        "tipo_incidente": "t.tipo_incidencia",
+        "dia_semana": "strftime('%w', t.fecha_apertura)"
+    }
+    resultados = {}
+
+    for nombre_agrupacion, campo_agrupacion in agrupaciones.items():
+        query = f"""SELECT {campo_agrupacion} AS agrupacion,
+                COUNT(DISTINCT t.id_ticket) AS num_incidentes,
+                COUNT(c.id_ticket) AS num_contactos,
+                SUM(c.tiempo) AS total_horas
+            FROM tickets_emitidos t
+                JOIN contactos_con_empleados c ON t.id_ticket = c.id_ticket
+                JOIN empleados e ON c.id_emp = e.id_emp
+            WHERE t.tipo_incidencia = {id_fraude} GROUP BY {campo_agrupacion}
+        """
+        df = pd.read_sql(query, con)
+
+
+        estadisticas = {
+                "media_incidentes": df['num_incidentes'].mean(),
+                "mediana_incidentes": df['num_incidentes'].median(),
+                "varianza_incidentes": df['num_incidentes'].var(),
+                "max_incidentes": df['num_incidentes'].max(),
+                "min_incidentes": df['num_incidentes'].min(),
+                "media_contactos": df['num_contactos'].mean(),
+                "mediana_contactos": df['num_contactos'].median(),
+                "varianza_contactos": df['num_contactos'].var(),
+                "max_contactos": df['num_contactos'].max(),
+                "min_contactos": df['num_contactos'].min(),
+                "media_horas": df['total_horas'].mean(),
+                "mediana_horas": df['total_horas'].median(),
+                "varianza_horas": df['total_horas'].var(),
+                "max_horas": df['total_horas'].max(),
+                "min_horas": df['total_horas'].min()
+        }
+        resultados[nombre_agrupacion] = estadisticas
+
+    return resultados
+
+resultados_2 = ejecutar_queries_ej3()
+
+for agrupacion, stats in resultados_2.items():
+    print(f"Agrupación: {agrupacion}")
+    if isinstance(stats, dict):
+        for stat, value in stats.items():
+            print(f"\t{stat}: {value}")
+    else:
+        print(f"\t{stats}")
+    print("\n")
