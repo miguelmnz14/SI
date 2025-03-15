@@ -2,21 +2,94 @@ import sqlite3
 import pandas as pd
 import simplejson
 import matplotlib.pyplot as plt
-from flask import Flask
+import matplotlib
+from flask import Flask, render_template
+
+matplotlib.use('Agg')
 
 app = Flask(__name__)
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
+def get_db_connection():
+    conn = sqlite3.connect('databaseP1.db')
+    conn.row_factory = sqlite3.Row
+    return conn
 
 @app.route('/')
-def hello_world():
-    return '<p>Hello, World!</p>'
+def index():
+    resultados = ejecutar_queries_ej2()
+    return render_template('ejercicio2.html', metricas=resultados)
+
+@app.route('/ejercicio2')
+def ejercicio2():
+    resultados = ejecutar_queries_ej2()
+    return render_template('ejercicio2.html', metricas=resultados)
+
+@app.route('/ejercicio3')
+def ejercicio3():
+    resultados = ejecutar_queries_ej3()
+    return render_template('ejercicio3.html', resultados=resultados)
+
+@app.route('/ejercicio4')
+def ejercicio4():
+    graficos = ejecutar_queries_ej4()
+    return render_template('ejercicio4.html', graphs=graficos)
 
 
-with open('datosDB.json', 'r', encoding='UTF-8') as f:
-    datos = simplejson.load(f)
+def setup_database():
+    with open('datosDB.json', 'r', encoding='UTF-8') as f:
+        datos = simplejson.load(f)
+        
+    con = sqlite3.connect('databaseP1.db')
+    cur = con.cursor()
+    cur.executescript("""
+        DROP TABLE IF EXISTS contactos_con_empleados;
+        DROP TABLE IF EXISTS tickets_emitidos;
+        DROP TABLE IF EXISTS empleados;
+        DROP TABLE IF EXISTS tipos_incidentes;
+        DROP TABLE IF EXISTS clientes;
 
+        CREATE TABLE clientes (
+            id_cli INTEGER PRIMARY KEY,
+            nombre TEXT,
+            telefono TEXT,
+            provincia TEXT
+        );
 
-def insertar_datos():
+        CREATE TABLE tipos_incidentes (
+            id_tipo INTEGER PRIMARY KEY,
+            nombre TEXT
+        );
+
+        CREATE TABLE empleados (
+            id_emp INTEGER PRIMARY KEY,
+            nombre TEXT,
+            nivel INTEGER,
+            fecha_contrato TEXT
+        );
+
+        CREATE TABLE tickets_emitidos (
+            id_ticket INTEGER PRIMARY KEY,
+            cliente INTEGER,
+            fecha_apertura TEXT,
+            fecha_cierre TEXT,
+            es_mantenimiento INTEGER,
+            satisfaccion_cliente INTEGER,
+            tipo_incidencia INTEGER,
+            FOREIGN KEY(cliente) REFERENCES clientes(id_cli),
+            FOREIGN KEY(tipo_incidencia) REFERENCES tipos_incidentes(id_tipo)
+        );
+
+        CREATE TABLE contactos_con_empleados (
+            id_ticket INTEGER,
+            id_emp INTEGER,
+            fecha TEXT,
+            tiempo REAL,
+            FOREIGN KEY(id_ticket) REFERENCES tickets_emitidos(id_ticket),
+            FOREIGN KEY(id_emp) REFERENCES empleados(id_emp)
+        );
+    """)
+
     for cliente in datos["clientes"]:
         cur.execute(
             "INSERT INTO clientes (id_cli, nombre, telefono, provincia) VALUES (?, ?, ?, ?)",
@@ -40,7 +113,7 @@ def insertar_datos():
         cur.execute(
             "INSERT INTO tickets_emitidos (cliente, fecha_apertura, fecha_cierre, es_mantenimiento, satisfaccion_cliente, tipo_incidencia) VALUES (?, ?, ?, ?, ?, ?)",
             (int(ticket["cliente"]), ticket["fecha_apertura"], ticket["fecha_cierre"], es_mantenimiento_val,
-             int(ticket["satisfaccion_cliente"]), int(ticket["tipo_incidencia"]))
+            int(ticket["satisfaccion_cliente"]), int(ticket["tipo_incidencia"]))
         )
         ticket_id = cur.lastrowid
 
@@ -51,68 +124,18 @@ def insertar_datos():
             )
 
     con.commit()
-
-
-con = sqlite3.connect('databaseP1.db')
-cur = con.cursor()
-cur.executescript("""
-    DROP TABLE IF EXISTS contactos_con_empleados;
-    DROP TABLE IF EXISTS tickets_emitidos;
-    DROP TABLE IF EXISTS empleados;
-    DROP TABLE IF EXISTS tipos_incidentes;
-    DROP TABLE IF EXISTS clientes;
-
-    CREATE TABLE clientes (
-        id_cli INTEGER PRIMARY KEY,
-        nombre TEXT,
-        telefono TEXT,
-        provincia TEXT
-    );
-
-    CREATE TABLE tipos_incidentes (
-        id_tipo INTEGER PRIMARY KEY,
-        nombre TEXT
-    );
-
-    CREATE TABLE empleados (
-        id_emp INTEGER PRIMARY KEY,
-        nombre TEXT,
-        nivel INTEGER,
-        fecha_contrato TEXT
-    );
-
-    CREATE TABLE tickets_emitidos (
-        id_ticket INTEGER PRIMARY KEY,
-        cliente INTEGER,
-        fecha_apertura TEXT,
-        fecha_cierre TEXT,
-        es_mantenimiento INTEGER,
-        satisfaccion_cliente INTEGER,
-        tipo_incidencia INTEGER,
-        FOREIGN KEY(cliente) REFERENCES clientes(id_cli),
-        FOREIGN KEY(tipo_incidencia) REFERENCES tipos_incidentes(id_tipo)
-    );
-
-    CREATE TABLE contactos_con_empleados (
-        id_ticket INTEGER,
-        id_emp INTEGER,
-        fecha TEXT,
-        tiempo REAL,
-        FOREIGN KEY(id_ticket) REFERENCES tickets_emitidos(id_ticket),
-        FOREIGN KEY(id_emp) REFERENCES empleados(id_emp)
-    );
-""")
-
-insertar_datos()
+    con.close()
 
 '''
 
-EJERCICIO 2
+
+Ejercicio 2
+
 
 '''
-
 
 def ejecutar_queries_ej2():
+    con = get_db_connection()
     metricas = {}
 
     # 1. Numero de muestras totales.
@@ -147,7 +170,7 @@ def ejecutar_queries_ej2():
     metricas['min_horas_empleado'] = df['total_horas'].min()
     metricas['max_horas_empleado'] = df['total_horas'].max()
 
-    # 6. Valor mínimo y valor máximo del )empo entre apertura y cierre de incidente.
+    # 6. Valor mínimo y valor máximo del tiempo entre apertura y cierre de incidente.
     query = """SELECT id_ticket, 
                (julianday(fecha_cierre) - julianday(fecha_apertura)) * 24 AS horas 
                FROM tickets_emitidos WHERE fecha_cierre IS NOT NULL;"""
@@ -162,6 +185,7 @@ def ejecutar_queries_ej2():
     metricas['min_incidentes_empleado'] = df['total'].min()
     metricas['max_incidentes_empleado'] = df['total'].max()
 
+    con.close()
     return metricas
 
 
@@ -179,6 +203,7 @@ Ejercicio 3
 
 
 def ejecutar_queries_ej3():
+    con = get_db_connection()
     # 1. Obtener el ID del tipo de incidente "Fraude"
     query = "SELECT id_tipo FROM tipos_incidentes WHERE nombre = 'Fraude';"
     id_fraude = pd.read_sql(query, con).iloc[0]['id_tipo']
@@ -223,23 +248,14 @@ def ejecutar_queries_ej3():
         }
         resultados[nombre_agrupacion] = estadisticas
 
+    con.close()
     return resultados
 
 
-resultados_2 = ejecutar_queries_ej3()
-
-for agrupacion, stats in resultados_2.items():
-    print(f"Agrupación: {agrupacion}")
-    if isinstance(stats, dict):
-        for stat, value in stats.items():
-            print(f"\t{stat}: {value}")
-    else:
-        print(f"\t{stats}")
-    print("\n")
-
-
-
 def ejecutar_queries_ej4():
+    con = get_db_connection()
+    
+    # 1: Media de tiempo de resolución
     query = """
         SELECT 
             es_mantenimiento,
@@ -248,15 +264,17 @@ def ejecutar_queries_ej4():
         GROUP BY es_mantenimiento;
     """
     df = pd.read_sql(query, con)
-
+    
     plt.figure(figsize=(8, 5))
     labels = ['No Mantenimiento', 'Mantenimiento']
     plt.bar(labels, df['media_horas'], color=['red', 'blue'])
     plt.title('Media de tiempo de resolución de incidentes')
     plt.ylabel('Horas')
     plt.xlabel('Tipo de servicio')
-    plt.show()
-
+    plt.savefig('static/grafico1.png', bbox_inches='tight')
+    plt.close()
+    
+    # 2: Bigotes por tipo de incidencia
     query = """
         SELECT 
             t.tipo_incidencia,
@@ -265,7 +283,7 @@ def ejecutar_queries_ej4():
         WHERE t.fecha_cierre IS NOT NULL;
     """
     df = pd.read_sql(query, con)
-
+    
     plt.figure(figsize=(10, 6))
     df.boxplot(column='horas_resolucion', by='tipo_incidencia',
                whis=[5, 95],
@@ -276,8 +294,10 @@ def ejecutar_queries_ej4():
     plt.ylabel('Horas de resolución')
     plt.xlabel('Tipo de incidencia')
     plt.xticks(rotation=45)
-    plt.show()
-
+    plt.savefig('static/grafico2.png', bbox_inches='tight')
+    plt.close()
+    
+    # 3: Top 5 clientes críticos
     query = """
         SELECT 
             c.nombre AS cliente,
@@ -290,15 +310,17 @@ def ejecutar_queries_ej4():
         LIMIT 5;
     """
     df = pd.read_sql(query, con)
-
+    
     plt.figure(figsize=(10, 6))
     plt.bar(df['cliente'], df['num_incidentes'], color='brown')
     plt.title('Top 5 clientes más críticos')
     plt.ylabel('Número de incidentes')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
-    plt.show()
-
+    plt.savefig('static/grafico3.png', bbox_inches='tight')
+    plt.close()
+    
+    # 4: Actuaciones por empleado
     query = """
         SELECT 
             e.nombre AS empleado,
@@ -309,15 +331,17 @@ def ejecutar_queries_ej4():
         ORDER BY num_actuaciones DESC;
     """
     df = pd.read_sql(query, con)
-
+    
     plt.figure(figsize=(12, 6))
     plt.bar(df['empleado'], df['num_actuaciones'], color='purple')
     plt.title('Actuaciones realizadas por empleado')
     plt.ylabel('Número de actuaciones')
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.show()
-
+    plt.savefig('static/grafico4.png', bbox_inches='tight')
+    plt.close()
+    
+    # 5: Actuaciones por día
     query = """
         SELECT 
             strftime('%w', c.fecha) AS dia_semana,
@@ -337,17 +361,16 @@ def ejecutar_queries_ej4():
         6: 'Domingo'
     }
     df['dia_semana'] = df['dia_semana'].astype(int).map(dias_dict)
-
+    
     plt.figure(figsize=(10, 6))
     plt.bar(df['dia_semana'], df['num_actuaciones'], color='green')
     plt.title('Actuaciones por día de la semana')
     plt.ylabel('Número de actuaciones')
     plt.xlabel('Día de la semana')
     plt.tight_layout()
-    plt.show()
+    plt.savefig('static/grafico5.png', bbox_inches='tight')
+    plt.close()
 
-
-ejecutar_queries_ej4()
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=False)
