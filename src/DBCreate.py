@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 def get_db_connection():
-    conn = sqlite3.connect('databaseP1.db')
+    conn = sqlite3.connect('src/databaseP1.db')
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -271,7 +271,7 @@ def ejecutar_queries_ej4():
     plt.title('Media de tiempo de resolución de incidentes')
     plt.ylabel('Horas')
     plt.xlabel('Tipo de servicio')
-    plt.savefig('static/grafico1.png', bbox_inches='tight')
+    plt.savefig('src/static/grafico1.png', bbox_inches='tight')
     plt.close()
     
     # 2: Bigotes por tipo de incidencia
@@ -294,7 +294,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Horas de resolución')
     plt.xlabel('Tipo de incidencia')
     plt.xticks(rotation=45)
-    plt.savefig('static/grafico2.png', bbox_inches='tight')
+    plt.savefig('src/static/grafico2.png', bbox_inches='tight')
     plt.close()
     
     # 3: Top 5 clientes críticos
@@ -317,7 +317,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de incidentes')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
-    plt.savefig('static/grafico3.png', bbox_inches='tight')
+    plt.savefig('src/static/grafico3.png', bbox_inches='tight')
     plt.close()
     
     # 4: Actuaciones por empleado
@@ -338,7 +338,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de actuaciones')
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.savefig('static/grafico4.png', bbox_inches='tight')
+    plt.savefig('src/static/grafico4.png', bbox_inches='tight')
     plt.close()
     
     # 5: Actuaciones por día
@@ -368,7 +368,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de actuaciones')
     plt.xlabel('Día de la semana')
     plt.tight_layout()
-    plt.savefig('static/grafico5.png', bbox_inches='tight')
+    plt.savefig('src/static/grafico5.png', bbox_inches='tight')
     plt.close()
 
 
