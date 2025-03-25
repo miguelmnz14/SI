@@ -3,7 +3,7 @@ import pandas as pd
 import simplejson
 import matplotlib.pyplot as plt
 import matplotlib
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 
 matplotlib.use('Agg')
 
@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 def get_db_connection():
-    conn = sqlite3.connect('src/databaseP1.db')
+    conn = sqlite3.connect(r'C:\Users\Sergio\PycharmProjects\SI\src\databaseP1.db')
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -35,11 +35,57 @@ def ejercicio4():
     graficos = ejecutar_queries_ej4()
     return render_template('ejercicio4.html', graphs=graficos)
 
+'''
 
-def setup_database():
+
+EJERCICIO 1 Práctica 2
+
+
+'''
+
+@app.route('/top_clientes')
+def top_clientes():
+
+    x = request.args.get('x', default=8, type=int)
+    con = get_db_connection()
+    query = """
+        SELECT c.nombre AS cliente, COUNT(t.id_ticket) AS num_incidencias
+        FROM tickets_emitidos t
+        JOIN clientes c ON t.cliente = c.id_cli
+        GROUP BY t.cliente
+        ORDER BY num_incidencias DESC
+        LIMIT ?;
+    """
+    top_clientes = pd.read_sql(query, con, params=(x,)).to_dict('records')
+    con.close()
+
+    return render_template('top_clientes.html', top_clientes=top_clientes,top_x=x)
+
+
+@app.route('/top_tipos_incidencias')
+def top_tipos_incidencias():
+    x = request.args.get('x', default=5, type=int)
+    con = get_db_connection()
+    query = """
+        SELECT ti.nombre AS tipo_incidencia, 
+               SUM(ce.tiempo) AS tiempo_total_resolucion
+        FROM tickets_emitidos t
+        JOIN tipos_incidentes ti ON t.tipo_incidencia = ti.id_tipo
+        JOIN contactos_con_empleados ce ON t.id_ticket = ce.id_ticket
+        GROUP BY t.tipo_incidencia
+        ORDER BY tiempo_total_resolucion DESC
+        LIMIT ?;
+    """
+    top_tipos = pd.read_sql(query, con, params=(x,)).to_dict('records')
+    con.close()
+
+    return render_template('top_tipos.html',top_tipos=top_tipos,top_x=x)
+
+
+'''def setup_database():
     with open('datosDB.json', 'r', encoding='UTF-8') as f:
         datos = simplejson.load(f)
-        
+
     con = sqlite3.connect('databaseP1.db')
     cur = con.cursor()
     cur.executescript("""
@@ -125,7 +171,7 @@ def setup_database():
 
     con.commit()
     con.close()
-
+'''
 '''
 
 
@@ -254,7 +300,7 @@ def ejecutar_queries_ej3():
 
 def ejecutar_queries_ej4():
     con = get_db_connection()
-    
+
     # 1: Media de tiempo de resolución
     query = """
         SELECT 
@@ -264,7 +310,7 @@ def ejecutar_queries_ej4():
         GROUP BY es_mantenimiento;
     """
     df = pd.read_sql(query, con)
-    
+
     plt.figure(figsize=(8, 5))
     labels = ['No Mantenimiento', 'Mantenimiento']
     plt.bar(labels, df['media_horas'], color=['red', 'blue'])
@@ -273,7 +319,7 @@ def ejecutar_queries_ej4():
     plt.xlabel('Tipo de servicio')
     plt.savefig('src/static/grafico1.png', bbox_inches='tight')
     plt.close()
-    
+
     # 2: Bigotes por tipo de incidencia
     query = """
         SELECT 
@@ -283,7 +329,7 @@ def ejecutar_queries_ej4():
         WHERE t.fecha_cierre IS NOT NULL;
     """
     df = pd.read_sql(query, con)
-    
+
     plt.figure(figsize=(10, 6))
     df.boxplot(column='horas_resolucion', by='tipo_incidencia',
                whis=[5, 95],
@@ -296,7 +342,7 @@ def ejecutar_queries_ej4():
     plt.xticks(rotation=45)
     plt.savefig('src/static/grafico2.png', bbox_inches='tight')
     plt.close()
-    
+
     # 3: Top 5 clientes críticos
     query = """
         SELECT 
@@ -310,7 +356,7 @@ def ejecutar_queries_ej4():
         LIMIT 5;
     """
     df = pd.read_sql(query, con)
-    
+
     plt.figure(figsize=(10, 6))
     plt.bar(df['cliente'], df['num_incidentes'], color='brown')
     plt.title('Top 5 clientes más críticos')
@@ -319,7 +365,7 @@ def ejecutar_queries_ej4():
     plt.tight_layout()
     plt.savefig('src/static/grafico3.png', bbox_inches='tight')
     plt.close()
-    
+
     # 4: Actuaciones por empleado
     query = """
         SELECT 
@@ -331,7 +377,7 @@ def ejecutar_queries_ej4():
         ORDER BY num_actuaciones DESC;
     """
     df = pd.read_sql(query, con)
-    
+
     plt.figure(figsize=(12, 6))
     plt.bar(df['empleado'], df['num_actuaciones'], color='purple')
     plt.title('Actuaciones realizadas por empleado')
@@ -340,7 +386,7 @@ def ejecutar_queries_ej4():
     plt.tight_layout()
     plt.savefig('src/static/grafico4.png', bbox_inches='tight')
     plt.close()
-    
+
     # 5: Actuaciones por día
     query = """
         SELECT 
@@ -361,7 +407,7 @@ def ejecutar_queries_ej4():
         6: 'Domingo'
     }
     df['dia_semana'] = df['dia_semana'].astype(int).map(dias_dict)
-    
+
     plt.figure(figsize=(10, 6))
     plt.bar(df['dia_semana'], df['num_actuaciones'], color='green')
     plt.title('Actuaciones por día de la semana')
