@@ -4,48 +4,44 @@ import simplejson
 import matplotlib.pyplot as plt
 import matplotlib
 from flask import Flask, render_template, request
+import os
 
 matplotlib.use('Agg')
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
+def get_absolute_path(relative_path):
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
+
 def get_db_connection():
-    conn = sqlite3.connect(r'C:\Users\Sergio\PycharmProjects\SI\src\databaseP1.db')
+    conn = sqlite3.connect(get_absolute_path('databaseP1.db'))
     conn.row_factory = sqlite3.Row
     return conn
 
 @app.route('/')
 def index():
     resultados = ejecutar_queries_ej2()
-    return render_template('ejercicio2.html', metricas=resultados)
+    return render_template(get_absolute_path('templates/ejercicio2.html'), metricas=resultados)
 
 @app.route('/ejercicio2')
 def ejercicio2():
     resultados = ejecutar_queries_ej2()
-    return render_template('ejercicio2.html', metricas=resultados)
+    return render_template(get_absolute_path('templates/ejercicio2.html'), metricas=resultados)
 
 @app.route('/ejercicio3')
 def ejercicio3():
     resultados = ejecutar_queries_ej3()
-    return render_template('ejercicio3.html', resultados=resultados)
+    return render_template(get_absolute_path('templates/ejercicio3.html'), resultados=resultados)
 
 @app.route('/ejercicio4')
 def ejercicio4():
     graficos = ejecutar_queries_ej4()
-    return render_template('ejercicio4.html', graphs=graficos)
-
-'''
-
-
-EJERCICIO 1 Práctica 2
-
-
-'''
+    return render_template(get_absolute_path('templates/ejercicio4.html'), graphs=graficos)
 
 @app.route('/top_clientes')
 def top_clientes():
-
     x = request.args.get('x', default=8, type=int)
     con = get_db_connection()
     query = """
@@ -59,8 +55,7 @@ def top_clientes():
     top_clientes = pd.read_sql(query, con, params=(x,)).to_dict('records')
     con.close()
 
-    return render_template('top_clientes.html', top_clientes=top_clientes,top_x=x)
-
+    return render_template(get_absolute_path('templates/top_clientes.html'), top_clientes=top_clientes, top_x=x)
 
 @app.route('/top_tipos_incidencias')
 def top_tipos_incidencias():
@@ -79,106 +74,7 @@ def top_tipos_incidencias():
     top_tipos = pd.read_sql(query, con, params=(x,)).to_dict('records')
     con.close()
 
-    return render_template('top_tipos.html',top_tipos=top_tipos,top_x=x)
-
-
-'''def setup_database():
-    with open('datosDB.json', 'r', encoding='UTF-8') as f:
-        datos = simplejson.load(f)
-
-    con = sqlite3.connect('databaseP1.db')
-    cur = con.cursor()
-    cur.executescript("""
-        DROP TABLE IF EXISTS contactos_con_empleados;
-        DROP TABLE IF EXISTS tickets_emitidos;
-        DROP TABLE IF EXISTS empleados;
-        DROP TABLE IF EXISTS tipos_incidentes;
-        DROP TABLE IF EXISTS clientes;
-
-        CREATE TABLE clientes (
-            id_cli INTEGER PRIMARY KEY,
-            nombre TEXT,
-            telefono TEXT,
-            provincia TEXT
-        );
-
-        CREATE TABLE tipos_incidentes (
-            id_tipo INTEGER PRIMARY KEY,
-            nombre TEXT
-        );
-
-        CREATE TABLE empleados (
-            id_emp INTEGER PRIMARY KEY,
-            nombre TEXT,
-            nivel INTEGER,
-            fecha_contrato TEXT
-        );
-
-        CREATE TABLE tickets_emitidos (
-            id_ticket INTEGER PRIMARY KEY,
-            cliente INTEGER,
-            fecha_apertura TEXT,
-            fecha_cierre TEXT,
-            es_mantenimiento INTEGER,
-            satisfaccion_cliente INTEGER,
-            tipo_incidencia INTEGER,
-            FOREIGN KEY(cliente) REFERENCES clientes(id_cli),
-            FOREIGN KEY(tipo_incidencia) REFERENCES tipos_incidentes(id_tipo)
-        );
-
-        CREATE TABLE contactos_con_empleados (
-            id_ticket INTEGER,
-            id_emp INTEGER,
-            fecha TEXT,
-            tiempo REAL,
-            FOREIGN KEY(id_ticket) REFERENCES tickets_emitidos(id_ticket),
-            FOREIGN KEY(id_emp) REFERENCES empleados(id_emp)
-        );
-    """)
-
-    for cliente in datos["clientes"]:
-        cur.execute(
-            "INSERT INTO clientes (id_cli, nombre, telefono, provincia) VALUES (?, ?, ?, ?)",
-            (int(cliente["id_cli"]), cliente["nombre"], cliente["telefono"], cliente["provincia"])
-        )
-
-    for tipo in datos["tipos_incidentes"]:
-        cur.execute(
-            "INSERT INTO tipos_incidentes (id_tipo, nombre) VALUES (?, ?)",
-            (int(tipo["id_inci"]), tipo["nombre"])
-        )
-
-    for emp in datos["empleados"]:
-        cur.execute(
-            "INSERT INTO empleados (id_emp, nombre, nivel, fecha_contrato) VALUES (?, ?, ?, ?)",
-            (int(emp["id_emp"]), emp["nombre"], int(emp["nivel"]), emp["fecha_contrato"])
-        )
-
-    for ticket in datos["tickets_emitidos"]:
-        es_mantenimiento_val = 1 if ticket["es_mantenimiento"] else 0
-        cur.execute(
-            "INSERT INTO tickets_emitidos (cliente, fecha_apertura, fecha_cierre, es_mantenimiento, satisfaccion_cliente, tipo_incidencia) VALUES (?, ?, ?, ?, ?, ?)",
-            (int(ticket["cliente"]), ticket["fecha_apertura"], ticket["fecha_cierre"], es_mantenimiento_val,
-            int(ticket["satisfaccion_cliente"]), int(ticket["tipo_incidencia"]))
-        )
-        ticket_id = cur.lastrowid
-
-        for contacto in ticket["contactos_con_empleados"]:
-            cur.execute(
-                "INSERT INTO contactos_con_empleados (id_ticket, id_emp, fecha, tiempo) VALUES (?, ?, ?, ?)",
-                (ticket_id, int(contacto["id_emp"]), contacto["fecha"], float(contacto["tiempo"]))
-            )
-
-    con.commit()
-    con.close()
-'''
-'''
-
-
-Ejercicio 2
-
-
-'''
+    return render_template(get_absolute_path('templates/top_tipos.html'), top_tipos=top_tipos, top_x=x)
 
 def ejecutar_queries_ej2():
     con = get_db_connection()
@@ -234,70 +130,6 @@ def ejecutar_queries_ej2():
     con.close()
     return metricas
 
-
-resultados = ejecutar_queries_ej2()
-for sentencia, result in resultados.items():
-    print(f"{sentencia}: {result}")
-
-'''
-
-
-Ejercicio 3
-
-
-'''
-
-
-def ejecutar_queries_ej3():
-    con = get_db_connection()
-    # 1. Obtener el ID del tipo de incidente "Fraude"
-    query = "SELECT id_tipo FROM tipos_incidentes WHERE nombre = 'Fraude';"
-    id_fraude = pd.read_sql(query, con).iloc[0]['id_tipo']
-
-    agrupaciones = {
-        "empleado": "e.id_emp",
-        "nivel_empleado": "e.nivel",
-        "cliente": "t.cliente",
-        "tipo_incidente": "t.tipo_incidencia",
-        "dia_semana": "strftime('%w', t.fecha_apertura)"
-    }
-    resultados = {}
-
-    for nombre_agrupacion, campo_agrupacion in agrupaciones.items():
-        query = f"""SELECT {campo_agrupacion} AS agrupacion,
-                COUNT(DISTINCT t.id_ticket) AS num_incidentes,
-                COUNT(c.id_ticket) AS num_contactos,
-                SUM(c.tiempo) AS total_horas
-            FROM tickets_emitidos t
-                JOIN contactos_con_empleados c ON t.id_ticket = c.id_ticket
-                JOIN empleados e ON c.id_emp = e.id_emp
-            WHERE t.tipo_incidencia = {id_fraude} GROUP BY {campo_agrupacion}
-        """
-        df = pd.read_sql(query, con)
-
-        estadisticas = {
-            "media_incidentes": df['num_incidentes'].mean(),
-            "mediana_incidentes": df['num_incidentes'].median(),
-            "varianza_incidentes": df['num_incidentes'].var(),
-            "max_incidentes": df['num_incidentes'].max(),
-            "min_incidentes": df['num_incidentes'].min(),
-            "media_contactos": df['num_contactos'].mean(),
-            "mediana_contactos": df['num_contactos'].median(),
-            "varianza_contactos": df['num_contactos'].var(),
-            "max_contactos": df['num_contactos'].max(),
-            "min_contactos": df['num_contactos'].min(),
-            "media_horas": df['total_horas'].mean(),
-            "mediana_horas": df['total_horas'].median(),
-            "varianza_horas": df['total_horas'].var(),
-            "max_horas": df['total_horas'].max(),
-            "min_horas": df['total_horas'].min()
-        }
-        resultados[nombre_agrupacion] = estadisticas
-
-    con.close()
-    return resultados
-
-
 def ejecutar_queries_ej4():
     con = get_db_connection()
 
@@ -317,7 +149,7 @@ def ejecutar_queries_ej4():
     plt.title('Media de tiempo de resolución de incidentes')
     plt.ylabel('Horas')
     plt.xlabel('Tipo de servicio')
-    plt.savefig('src/static/grafico1.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('static/grafico1.png'), bbox_inches='tight')
     plt.close()
 
     # 2: Bigotes por tipo de incidencia
@@ -340,7 +172,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Horas de resolución')
     plt.xlabel('Tipo de incidencia')
     plt.xticks(rotation=45)
-    plt.savefig('src/static/grafico2.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('static/grafico2.png'), bbox_inches='tight')
     plt.close()
 
     # 3: Top 5 clientes críticos
@@ -363,7 +195,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de incidentes')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
-    plt.savefig('src/static/grafico3.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('static/grafico3.png'), bbox_inches='tight')
     plt.close()
 
     # 4: Actuaciones por empleado
@@ -384,7 +216,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de actuaciones')
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.savefig('src/static/grafico4.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('static/grafico4.png'), bbox_inches='tight')
     plt.close()
 
     # 5: Actuaciones por día
@@ -414,9 +246,8 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de actuaciones')
     plt.xlabel('Día de la semana')
     plt.tight_layout()
-    plt.savefig('src/static/grafico5.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('static/grafico5.png'), bbox_inches='tight')
     plt.close()
-
 
 if __name__ == '__main__':
     app.run(debug=False)
