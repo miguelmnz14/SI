@@ -4,19 +4,14 @@ import simplejson
 import matplotlib.pyplot as plt
 import matplotlib
 from flask import Flask, render_template, request
-import os
 
 matplotlib.use('Agg')
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
-def get_absolute_path(relative_path):
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(base_path, relative_path)
-
 def get_db_connection():
-    conn = sqlite3.connect(get_absolute_path('databaseP1.db'))
+    conn = sqlite3.connect(r'C:\Users\MarK1\PycharmProjects\SI\src\databaseP1.db')
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -86,6 +81,23 @@ def top_tipos_incidencias():
 
     return render_template('top_tipos.html',top_tipos=top_tipos,top_x=x)
 
+
+@app.route('/empleados_mas_dedicados')
+def empleados_mas_dedicados():
+    con = get_db_connection()
+    query = """
+        SELECT 
+            e.nombre AS empleado,
+            SUM(c.tiempo) AS total_tiempo
+        FROM contactos_con_empleados c
+        JOIN empleados e ON c.id_emp = e.id_emp
+        GROUP BY e.id_emp
+        ORDER BY total_tiempo DESC;
+    """
+    empleados = pd.read_sql(query, con).to_dict('records')
+    con.close()
+
+    return render_template('empleados_mas_dedicados.html', empleados=empleados)
 
 '''def setup_database():
     with open('datosDB.json', 'r', encoding='UTF-8') as f:
