@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empleados más dedicados</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            font-weight: bold;
+            background-color: #6c757d;
+            color: white;
+        }
+        .table-top-clientes {
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .table-top-clientes th {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-back {
+            margin-top: 20px;
+        }
+        .header-container {
+            background-color: #343a40;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1>Empleados más dedicados</h1>
+            <p class="lead">Tiempo total dedicado a la resolución de incidencias</p>
+        </div>
+
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link" href="/ejercicio2">Ejercicio 2: Métricas Básicas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/ejercicio3">Ejercicio 3: Análisis de Fraude</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/ejercicio4">Ejercicio 4: Visualizaciones</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/top_clientes">Top clientes con más incidencias</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="/top_tipos_incidencias">Top tipos incidencias</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="/empleados_mas_dedicados">Empleados más dedicados</a>
+            </li>
+        </ul>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        Listado de Empleados
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-top-clientes">
+                                <thead>
+                                    <tr>
+                                        <th>Posición</th>
+                                        <th>Empleado</th>
+                                        <th>Tiempo total dedicado (horas)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for emp in empleados %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ emp['empleado'] }}</td>
+                                        <td>{{ "%.2f"|format(emp['total_tiempo']) }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center">
+                    <a href="/" class="btn btn-secondary btn-back">Volver al Inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
