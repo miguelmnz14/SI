@@ -81,6 +81,7 @@ def top_tipos_incidencias():
 
     return render_template('top_tipos.html',top_tipos=top_tipos,top_x=x)
 
+
 @app.route('/empleados_mas_dedicados')
 def empleados_mas_dedicados():
     con = get_db_connection()
@@ -97,7 +98,6 @@ def empleados_mas_dedicados():
     con.close()
 
     return render_template('empleados_mas_dedicados.html', empleados=empleados)
-
 
 '''def setup_database():
     with open('datosDB.json', 'r', encoding='UTF-8') as f:
@@ -334,7 +334,7 @@ def ejecutar_queries_ej4():
     plt.title('Media de tiempo de resolución de incidentes')
     plt.ylabel('Horas')
     plt.xlabel('Tipo de servicio')
-    plt.savefig('src/static/grafico1.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('grafico1.png'), bbox_inches='tight')
     plt.close()
 
     # 2: Bigotes por tipo de incidencia
@@ -357,7 +357,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Horas de resolución')
     plt.xlabel('Tipo de incidencia')
     plt.xticks(rotation=45)
-    plt.savefig('src/static/grafico2.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('grafico2.png'), bbox_inches='tight')
     plt.close()
 
     # 3: Top 5 clientes críticos
@@ -380,7 +380,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de incidentes')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
-    plt.savefig('src/static/grafico3.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('grafico3.png'), bbox_inches='tight')
     plt.close()
 
     # 4: Actuaciones por empleado
@@ -401,7 +401,7 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de actuaciones')
     plt.xticks(rotation=90)
     plt.tight_layout()
-    plt.savefig('src/static/grafico4.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('grafico4.png'), bbox_inches='tight')
     plt.close()
 
     # 5: Actuaciones por día
@@ -431,9 +431,8 @@ def ejecutar_queries_ej4():
     plt.ylabel('Número de actuaciones')
     plt.xlabel('Día de la semana')
     plt.tight_layout()
-    plt.savefig('src/static/grafico5.png', bbox_inches='tight')
+    plt.savefig(get_absolute_path('grafico5.png'), bbox_inches='tight')
     plt.close()
-
 
 
 if __name__ == '__main__':
