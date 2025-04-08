@@ -4,14 +4,19 @@ import simplejson
 import matplotlib.pyplot as plt
 import matplotlib
 from flask import Flask, render_template, request
+import os
 
 matplotlib.use('Agg')
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
+def get_absolute_path(relative_path):
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_path, relative_path)
+
 def get_db_connection():
-    conn = sqlite3.connect(r'C:\Users\MarK1\PycharmProjects\SI\src\databaseP1.db')
+    conn = sqlite3.connect(get_absolute_path('databaseP1.db'))
     conn.row_factory = sqlite3.Row
     return conn
 
