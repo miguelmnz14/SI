@@ -1,15 +1,19 @@
 import sqlite3
+from functools import wraps
+
 import pandas as pd
 import simplejson
 import matplotlib.pyplot as plt
 import matplotlib
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
 import os
 
 matplotlib.use('Agg')
 
 app = Flask(__name__)
 app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.secret_key = 'secret_key'
+
 
 def get_absolute_path(relative_path):
     base_path = os.path.dirname(os.path.abspath(__file__))
@@ -20,22 +24,67 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
+'''
+
+
+Ejercicio 6
+
+
+'''
+users = {
+    'admin': 'admin',
+    'user': 'user123'
+}
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Ruta de login
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        if username in users and users[username] == password:
+            session['username'] = username
+            return redirect(url_for('index'))
+        else:
+            flash('Usuario o contraseña incorrectos')
+
+    return render_template('login.html')
+
+
+# Ruta para cerrar sesión
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def index():
     resultados = ejecutar_queries_ej2()
     return render_template('ejercicio2.html', metricas=resultados)
 
 @app.route('/ejercicio2')
+@login_required
 def ejercicio2():
     resultados = ejecutar_queries_ej2()
     return render_template('ejercicio2.html', metricas=resultados)
 
 @app.route('/ejercicio3')
+@login_required
 def ejercicio3():
     resultados = ejecutar_queries_ej3()
     return render_template('ejercicio3.html', resultados=resultados)
 
 @app.route('/ejercicio4')
+@login_required
 def ejercicio4():
     graficos = ejecutar_queries_ej4()
     return render_template('ejercicio4.html', graphs=graficos)
@@ -48,12 +97,18 @@ EJERCICIO 1 Práctica 2
 
 '''
 
-@app.route('/top_clientes')
-def top_clientes():
 
+@app.route('/top_clientes')
+@login_required
+def top_clientes():
     x = request.args.get('x', default=8, type=int)
+    # Nuevo parámetro para determinar si se muestran empleados
+    mostrar_empleados = request.args.get('mostrar_empleados', default='no', type=str) == 'si'
+
     con = get_db_connection()
-    query = """
+
+    # Consulta para top clientes
+    query_clientes = """
         SELECT c.nombre AS cliente, COUNT(t.id_ticket) AS num_incidencias
         FROM tickets_emitidos t
         JOIN clientes c ON t.cliente = c.id_cli
@@ -61,13 +116,34 @@ def top_clientes():
         ORDER BY num_incidencias DESC
         LIMIT ?;
     """
-    top_clientes = pd.read_sql(query, con, params=(x,)).to_dict('records')
+    top_clientes = pd.read_sql(query_clientes, con, params=(x,)).to_dict('records')
+
+    # Consulta para top empleados si se solicita
+    top_empleados = []
+    if mostrar_empleados:
+        query_empleados = """
+            SELECT e.nombre AS empleado, SUM(t.tiempo_resolucion) AS tiempo_total,
+                  COUNT(t.id_ticket) AS num_incidencias,
+                  AVG(t.tiempo_resolucion) AS tiempo_promedio
+            FROM tickets_emitidos t
+            JOIN empleados e ON t.empleado_asignado = e.id_emp
+            GROUP BY t.empleado_asignado
+            ORDER BY tiempo_total DESC
+            LIMIT ?;
+        """
+        top_empleados = pd.read_sql(query_empleados, con, params=(x,)).to_dict('records')
+
     con.close()
 
-    return render_template('top_clientes.html', top_clientes=top_clientes,top_x=x)
+    return render_template('top_clientes.html',
+                           top_clientes=top_clientes,
+                           top_empleados=top_empleados,
+                           mostrar_empleados=mostrar_empleados,
+                           top_x=x)
 
 
 @app.route('/top_tipos_incidencias')
+@login_required
 def top_tipos_incidencias():
     x = request.args.get('x', default=5, type=int)
     con = get_db_connection()
@@ -88,6 +164,7 @@ def top_tipos_incidencias():
 
 
 @app.route('/empleados_mas_dedicados')
+@login_required
 def empleados_mas_dedicados():
     con = get_db_connection()
     query = """
@@ -103,6 +180,7 @@ def empleados_mas_dedicados():
     con.close()
 
     return render_template('empleados_mas_dedicados.html', empleados=empleados)
+
 
 '''def setup_database():
     with open('datosDB.json', 'r', encoding='UTF-8') as f:
