@@ -91,23 +91,9 @@ def ejercicio4():
     return render_template('ejercicio4.html', graphs=graficos)
 
 
-'''@app.route('/api')
-def api():
-    url = "https://cve.circl.lu/api/last"
-    cves = []
-    try:
-        response = requests.get(url)
-        response.raise_for_status()
-        data = response.json()
-        # Nos quedamos con las últimas 10
-        cves = data[:10]
-        print(cves[8])
-    except Exception as e:
-        print(f"Error al obtener CVEs: {e}")
 
-
-    return render_template("api.html", cves=cves)'''
 @app.route('/api')
+@login_required
 def api():
     url = "https://cve.circl.lu/api/last"
     cves = []
