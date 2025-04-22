@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 from flask import Flask, render_template, request
 import os
+import requests
 
 matplotlib.use('Agg')
 
@@ -40,6 +41,46 @@ def ejercicio4():
     graficos = ejecutar_queries_ej4()
     return render_template('ejercicio4.html', graphs=graficos)
 
+
+'''@app.route('/api')
+def api():
+    url = "https://cve.circl.lu/api/last"
+    cves = []
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+        # Nos quedamos con las últimas 10
+        cves = data[:10]
+        print(cves[8])
+    except Exception as e:
+        print(f"Error al obtener CVEs: {e}")
+
+
+    return render_template("api.html", cves=cves)'''
+@app.route('/api')
+def api():
+    url = "https://cve.circl.lu/api/last"
+    cves = []
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        data = response.json()
+
+        # Recorremos toda la lista 'data' y agregamos solo los elementos que tengan 'cveMetadata'
+        for cve in data:
+            if 'cveMetadata' in cve:
+                cves.append(cve)
+            # Si ya tenemos 10 elementos en 'cves', salimos del bucle
+            if len(cves) == 10:
+                break
+
+        print(cves)  # Para verificar los resultados
+
+    except Exception as e:
+        print(f"Error al obtener CVEs: {e}")
+
+    return render_template("api.html", cves=cves)
 '''
 
 
