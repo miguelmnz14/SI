@@ -133,6 +133,7 @@ def top_clientes():
         """
         top_empleados = pd.read_sql(query_empleados, con, params=(x,)).to_dict('records')
 
+
     con.close()
 
     return render_template('top_clientes.html',
