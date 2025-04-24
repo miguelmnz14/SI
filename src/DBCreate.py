@@ -59,8 +59,6 @@ def login():
 
     return render_template('login.html')
 
-
-# Ruta para cerrar sesión
 @app.route('/logout')
 def logout():
     session.pop('username', None)

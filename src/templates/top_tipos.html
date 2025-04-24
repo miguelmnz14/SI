@@ -68,11 +68,13 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="contenido">
         <div class="header-container">
             <h1>Top {{ top_x }} Tipos de Incidencias</h1>
             <p class="lead">Tipos de incidencias con mayor tiempo de resolución</p>
         </div>
+        <button onclick="descargarPDF()">Guardar como PDF</button>
+
 
         <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -153,5 +155,12 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+    <script>
+        function descargarPDF() {
+            const element = document.getElementById('contenido');
+            html2pdf().from(element).save('Top_tipos_Incidencias.pdf');
+        }
+    </script>
 </body>
 </html>
