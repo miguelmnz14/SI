@@ -5,7 +5,7 @@ import pandas as pd
 import simplejson
 import matplotlib.pyplot as plt
 import matplotlib
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash, make_response
 import os
 import requests
 
@@ -116,6 +116,7 @@ def api():
         print(f"Error al obtener CVEs: {e}")
 
     return render_template("api.html", cves=cves)
+
 '''
 
 
