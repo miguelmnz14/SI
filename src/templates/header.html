@@ -1,0 +1,31 @@
+<div class="header-container">
+    <h1>{{ title }}</h1>
+    <p class="lead">{{ subtitle }}</p>
+</div>
+
+<ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'metricas_basicas' %}active{% endif %}" href="/metricas_basicas">Métricas Básicas</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'analisis_fraude' %}active{% endif %}" href="/analisis_fraude">Análisis de Fraude</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'visualizaciones' %}active{% endif %}" href="/visualizaciones">Visualizaciones</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'top_clientes' %}active{% endif %}" href="/top_clientes">Top clientes con más incidencias</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'top_tipos_incidencias' %}active{% endif %}" href="/top_tipos_incidencias">Top tipos incidencias</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'empleados_mas_dedicados' %}active{% endif %}" href="/empleados_mas_dedicados">Empleados más dedicados</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'api' %}active{% endif %}" href="/api">10 últimos CVE</a>
+    </li>
+    <li class="nav-item" role="presentation">
+        <a class="nav-link {% if active_page == 'prediccion_tickets' %}active{% endif %}" href="/prediccion_tickets">Predicción de Tickets Críticos</a>
+    </li>
+</ul>

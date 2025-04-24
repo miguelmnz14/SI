@@ -5,98 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Top Clientes con más Incidencias</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            padding-top: 20px;
-            background-color: #f8f9fa;
-        }
-        .card {
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .card-header {
-            font-weight: bold;
-            background-color: #6c757d;
-            color: white;
-        }
-        .stat-card {
-            text-align: center;
-            padding: 15px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            transition: transform 0.3s;
-        }
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        .stat-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #0275d8;
-        }
-        .stat-label {
-            color: #6c757d;
-            font-size: 14px;
-        }
-        .nav-link {
-            color: #495057;
-        }
-        .nav-link.active {
-            background-color: #6c757d !important;
-            color: white !important;
-        }
-        .header-container {
-            background-color: #343a40;
-            color: white;
-            padding: 20px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .table-top-clientes {
-            background-color: white;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .table-top-clientes th {
-            background-color: #6c757d;
-            color: white;
-        }
-        .btn-back {
-            margin-top: 20px;
-        }
-    </style>
+    <link href="static/styles.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <div class="header-container">
-            <h1>Top {{ top_x }} Clientes con más Incidencias</h1>
-            <p class="lead">Análisis de clientes con mayor número de incidencias reportadas</p>
-        </div>
-
-        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" href="/ejercicio2">Ejercicio 2: Métricas Básicas</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" href="/ejercicio3">Ejercicio 3: Análisis de Fraude</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" href="/ejercicio4">Ejercicio 4: Visualizaciones</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link active" href="/top_clientes">Top clientes con más incidencias</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" href="/top_tipos_incidencias">Top tipos incidencias</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" href="/empleados_mas_dedicados">Empleados mas dedicados</a>
-            </li>
-            <li class="nav-item" role="presentation">
-                <a class="nav-link" href="/api">10 ultimos CVE</a>
-            </li>
-        </ul>
+        {% with title='Top ' + top_x|string + ' Clientes con más Incidencias', subtitle='Análisis de clientes con mayor número de incidencias reportadas', active_page='top_clientes' %}
+        {% include 'header.html' %}
+        {% endwith %}
 
         <div class="row">
             <div class="col-md-12">
@@ -145,10 +60,6 @@
                             </table>
                         </div>
                     </div>
-                </div>
-
-                <div class="text-center">
-                    <a href="/" class="btn btn-secondary btn-back">Volver al Inicio</a>
                 </div>
             </div>
         </div>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predicción de Tickets Críticos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        {% with title='Predicción de Tickets Críticos', subtitle='Análisis predictivo con modelos de aprendizaje supervisado', active_page='prediccion_tickets' %}
+        {% include 'header.html' %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- COLUMNA IZQUIERDA: Formulario de entrada -->
+            <div class="col-md-6">
+                <!-- Formulario de entrada -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        Datos del nuevo ticket
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('ejercicio5') }}">
+                            <div class="mb-3">
+                                <label for="cliente" class="form-label">Cliente:</label>
+                                <select class="form-select" id="cliente" name="cliente" required>
+                                    {% for cliente in clientes %}
+                                    <option value="{{ cliente.id_cli }}">{{ cliente.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fecha_apertura" class="form-label">Fecha de apertura:</label>
+                                <input type="datetime-local" class="form-control" id="fecha_apertura" name="fecha_apertura" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="fecha_cierre" class="form-label">Fecha de cierre:</label>
+                                <input type="datetime-local" class="form-control" id="fecha_cierre" name="fecha_cierre">
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="es_mantenimiento" name="es_mantenimiento">
+                                <label class="form-check-label" for="es_mantenimiento">Es mantenimiento</label>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="tipo_incidencia" class="form-label">Tipo de incidencia:</label>
+                                <select class="form-select" id="tipo_incidencia" name="tipo_incidencia" required>
+                                    {% for tipo in tipos_incidentes %}
+                                    <option value="{{ tipo.id_tipo }}">{{ tipo.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="modelo" class="form-label">Método de predicción:</label>
+                                <select class="form-select" id="modelo" name="modelo" required>
+                                    <option value="linear_regression">Regresión Lineal</option>
+                                    <option value="decision_tree">Árbol de Decisión</option>
+                                    <option value="random_forest">Random Forest</option>
+                                </select>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Predecir</button>
+                        </form>
+                    </div>
+                </div>
+
+                {% if prediction is not none %}
+                <!-- Sección de explicación de modelos - Aparece en la columna izquierda cuando hay predicción -->
+                <div class="card">
+                    <div class="card-header">
+                        Explicación de los modelos
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-pills mb-3" id="modelTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="lr-tab" data-bs-toggle="pill" data-bs-target="#lr" type="button" role="tab">Regresión Lineal</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="dt-tab" data-bs-toggle="pill" data-bs-target="#dt" type="button" role="tab">Árbol de Decisión</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="rf-tab" data-bs-toggle="pill" data-bs-target="#rf" type="button" role="tab">Random Forest</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="modelTabsContent">
+                            <div class="tab-pane fade show active" id="lr" role="tabpanel">
+                                <h5>Regresión Lineal</h5>
+                                <p>La regresión lineal (logística) es un método estadístico que modela la probabilidad de que un ticket sea crítico mediante una combinación lineal de sus características.</p>
+                                <p>Este modelo asigna pesos a cada característica, indicando su importancia para clasificar un ticket como crítico o no crítico.</p>
+                                <div class="text-center">
+                                    <img src="{{ url_for('static', filename='lr_importance.png') }}" class="graph-img" alt="Importancia de características en Regresión Lineal">
+                                </div>
+                                <p>Cuanto mayor sea el peso de una característica, mayor será su influencia en la predicción.</p>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="dt" role="tabpanel">
+                                <h5>Árbol de Decisión</h5>
+                                <p>El árbol de decisión es un modelo que divide los datos basándose en reglas de decisión sobre las características:</p>
+                                <div class="text-center">
+                                    <img src="{{ url_for('static', filename='decision_tree.png') }}" class="graph-img" alt="Visualización del Árbol de Decisión">
+                                </div>
+                                <p>En cada nodo, el árbol toma una decisión basada en una característica y un umbral. Siguiendo estos caminos, podemos entender cómo se clasifica un ticket como crítico o no.</p>
+                                
+                                <h6 class="mt-3">Interpretación del árbol:</h6>
+                                <ul>
+                                    <li><strong>gini</strong>: Es el índice de impureza de Gini. Valores cercanos a 0 indican que el nodo es "puro" (contiene principalmente una clase). Valores cercanos a 0.5 indican máxima impureza (mezcla de clases).</li>
+                                    <li><strong>samples</strong>: Número de muestras en ese nodo.</li>
+                                    <li><strong>value</strong>: Distribución de clases en el nodo, generalmente muestra [no críticos, críticos].</li>
+                                    <li><strong>class</strong>: La clase mayoritaria en ese nodo (0=no crítico, 1=crítico).</li>
+                                </ul>
+                                
+                                <p>Los nodos internos representan pruebas sobre características (por ejemplo, "tipo_incidencia <= 2.5") y las hojas muestran la clasificación final.</p>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="rf" role="tabpanel">
+                                <h5>Random Forest</h5>
+                                <p>Random Forest utiliza múltiples árboles de decisión y combina sus resultados para obtener una predicción más robusta:</p>
+                                <div class="text-center">
+                                    <img src="{{ url_for('static', filename='rf_importance.png') }}" class="graph-img" alt="Importancia de características en Random Forest">
+                                </div>
+                                <p>Este modelo es más resistente al sobreajuste y puede capturar relaciones más complejas entre las características y la variable objetivo.</p>
+                                
+                                <h6 class="mt-3">Diferencia con la Regresión Lineal:</h6>
+                                <p>Aunque ambos modelos muestran la importancia de las características, el cálculo es fundamentalmente diferente:</p>
+                                <ul>
+                                    <li><strong>Regresión Lineal</strong>: Las importancias se basan en los coeficientes del modelo, que representan el cambio en la predicción por unidad de cambio en cada variable.</li>
+                                    <li><strong>Random Forest</strong>: Las importancias se calculan midiendo cuánto aumenta el error del modelo cuando una característica se aleatorizó, promediando sobre muchos árboles independientes.</li>
+                                </ul>
+                                
+                                <h6 class="mt-3">Ejemplo de un árbol individual del bosque:</h6>
+                                <div class="text-center mt-2">
+                                    <img src="{{ url_for('static', filename='rf_sample_tree.png') }}" class="graph-img" alt="Ejemplo de árbol en Random Forest">
+                                </div>
+                                <p class="mt-2"><small>El Random Forest combina las decisiones de muchos árboles como este para mejorar la precisión y evitar el sobreajuste.</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- COLUMNA DERECHA: Resultados de la predicción o explicación de modelos -->
+            <div class="col-md-6">
+                {% if prediction is not none %}
+                <!-- Resultado de la predicción -->
+                <div class="card mb-4">
+                    <div class="card-header {% if prediction %}bg-danger{% else %}bg-success{% endif %}">
+                        Resultado de la predicción
+                    </div>
+                    <div class="card-body">
+                        <div class="prediction-result {% if prediction %}prediction-critical{% else %}prediction-success{% endif %}">
+                            <h4>Este ticket {% if prediction %}ES CRÍTICO{% else %}NO ES CRÍTICO{% endif %}</h4>
+                            <p><strong>Confianza:</strong> {{ confidence|round(2) }}%</p>
+                        </div>
+                        
+                        {% if prediction_image %}
+                        <div class="text-center mt-3">
+                            <img src="{{ url_for('static', filename=prediction_image) }}" class="img-fluid" alt="Importancia de características">
+                        </div>
+                        {% endif %}
+                        
+                        <h5 class="model-header mt-3">Importancia de las características:</h5>
+                        <table class="table table-striped feature-table">
+                            <thead>
+                                <tr>
+                                    <th>Característica</th>
+                                    <th>Importancia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for feature in feature_importance %}
+                                <tr>
+                                    <td>{{ feature.feature }}</td>
+                                    <td>{{ feature.importance|round(4) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Resumen del ticket -->
+                <div class="card">
+                    <div class="card-header bg-info text-white">
+                        Resumen del Ticket Analizado
+                    </div>
+                    <div class="card-body">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th>Cliente:</th>
+                                    <td>{{ ticket_info.cliente_nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Fecha de apertura:</th>
+                                    <td>{{ ticket_info.fecha_apertura }}</td>
+                                </tr>
+                                {% if ticket_info.fecha_cierre %}
+                                <tr>
+                                    <th>Fecha de cierre:</th>
+                                    <td>{{ ticket_info.fecha_cierre }}</td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <th>Es mantenimiento:</th>
+                                    <td>{{ ticket_info.es_mantenimiento }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Tipo de incidencia:</th>
+                                    <td>{{ ticket_info.tipo_incidencia_nombre }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% else %}
+                <!-- Sección de explicación de modelos - Ahora en columna derecha cuando no hay predicción -->
+                <div class="card">
+                    <div class="card-header">
+                        Explicación de los modelos
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-pills mb-3" id="modelTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="lr-tab" data-bs-toggle="pill" data-bs-target="#lr" type="button" role="tab">Regresión Lineal</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="dt-tab" data-bs-toggle="pill" data-bs-target="#dt" type="button" role="tab">Árbol de Decisión</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="rf-tab" data-bs-toggle="pill" data-bs-target="#rf" type="button" role="tab">Random Forest</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content" id="modelTabsContent">
+                            <div class="tab-pane fade show active" id="lr" role="tabpanel">
+                                <h5>Regresión Lineal</h5>
+                                <p>La regresión lineal (logística) es un método estadístico que modela la probabilidad de que un ticket sea crítico mediante una combinación lineal de sus características.</p>
+                                <p>Este modelo asigna pesos a cada característica, indicando su importancia para clasificar un ticket como crítico o no crítico.</p>
+                                <div class="text-center">
+                                    <img src="{{ url_for('static', filename='lr_importance.png') }}" class="graph-img" alt="Importancia de características en Regresión Lineal">
+                                </div>
+                                <p>Cuanto mayor sea el peso de una característica, mayor será su influencia en la predicción.</p>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="dt" role="tabpanel">
+                                <h5>Árbol de Decisión</h5>
+                                <p>El árbol de decisión es un modelo que divide los datos basándose en reglas de decisión sobre las características:</p>
+                                <div class="text-center">
+                                    <img src="{{ url_for('static', filename='decision_tree.png') }}" class="graph-img" alt="Visualización del Árbol de Decisión">
+                                </div>
+                                <p>En cada nodo, el árbol toma una decisión basada en una característica y un umbral. Siguiendo estos caminos, podemos entender cómo se clasifica un ticket como crítico o no.</p>
+                                
+                                <h6 class="mt-3">Interpretación del árbol:</h6>
+                                <ul>
+                                    <li><strong>gini</strong>: Es el índice de impureza de Gini. Valores cercanos a 0 indican que el nodo es "puro" (contiene principalmente una clase). Valores cercanos a 0.5 indican máxima impureza (mezcla de clases).</li>
+                                    <li><strong>samples</strong>: Número de muestras en ese nodo.</li>
+                                    <li><strong>value</strong>: Distribución de clases en el nodo, generalmente muestra [no críticos, críticos].</li>
+                                    <li><strong>class</strong>: La clase mayoritaria en ese nodo (0=no crítico, 1=crítico).</li>
+                                </ul>
+                                
+                                <p>Los nodos internos representan pruebas sobre características (por ejemplo, "tipo_incidencia <= 2.5") y las hojas muestran la clasificación final.</p>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="rf" role="tabpanel">
+                                <h5>Random Forest</h5>
+                                <p>Random Forest utiliza múltiples árboles de decisión y combina sus resultados para obtener una predicción más robusta:</p>
+                                <div class="text-center">
+                                    <img src="{{ url_for('static', filename='rf_importance.png') }}" class="graph-img" alt="Importancia de características en Random Forest">
+                                </div>
+                                <p>Este modelo es más resistente al sobreajuste y puede capturar relaciones más complejas entre las características y la variable objetivo.</p>
+                                
+                                <h6 class="mt-3">Diferencia con la Regresión Lineal:</h6>
+                                <p>Aunque ambos modelos muestran la importancia de las características, el cálculo es fundamentalmente diferente:</p>
+                                <ul>
+                                    <li><strong>Regresión Lineal</strong>: Las importancias se basan en los coeficientes del modelo, que representan el cambio en la predicción por unidad de cambio en cada variable.</li>
+                                    <li><strong>Random Forest</strong>: Las importancias se calculan midiendo cuánto aumenta el error del modelo cuando una característica se aleatorizó, promediando sobre muchos árboles independientes.</li>
+                                </ul>
+                                
+                                <h6 class="mt-3">Ejemplo de un árbol individual del bosque:</h6>
+                                <div class="text-center mt-2">
+                                    <img src="{{ url_for('static', filename='rf_sample_tree.png') }}" class="graph-img" alt="Ejemplo de árbol en Random Forest">
+                                </div>
+                                <p class="mt-2"><small>El Random Forest combina las decisiones de muchos árboles como este para mejorar la precisión y evitar el sobreajuste.</small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Mensajes de error -->
+                {% if error_message %}
+                <div class="alert alert-danger mt-4">
+                    {{ error_message }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
