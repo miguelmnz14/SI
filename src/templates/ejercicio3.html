@@ -26,12 +26,12 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="contenido">
         <div class="header-container">
             <h1>Ejercicio 3: Análisis de Fraude</h1>
             <p class="lead">Estadísticas de fraude por diferentes agrupaciones</p>
         </div>
-
+        <button onclick="descargarPDF()">Guardar como PDF</button>
         <!-- Nav tabs corregido (tenías un </li> mal posicionado) -->
         <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
             <li class="nav-item" role="presentation">
@@ -91,5 +91,15 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+
+
+
+    <script>
+        function descargarPDF() {
+            const element = document.getElementById('contenido');
+            html2pdf().from(element).save('pagina.pdf');
+        }
+    </script>
 </body>
 </html>
