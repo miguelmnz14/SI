@@ -212,7 +212,7 @@ Estas funciones si que son necesarias llamar para cada peticion POST:
    - Carga los modelos entrenados previamente para hacer predicciones
 '''
 
-def prepare_features_for_prediction(cliente_id, fecha_apertura, fecha_cierre, es_mantenimiento, tipo_incidencia, get_db_connection):
+def prepare_features_for_prediction(cliente_id, fecha_apertura, fecha_cierre, es_mantenimiento, tipo_incidencia, _, get_db_connection):
     con = get_db_connection()
     
     tiempo_resolucion = 0

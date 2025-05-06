@@ -67,12 +67,6 @@ def ejercicio4():
     graficos = ejecutar_queries_ej4()
     return render_template('visualizaciones.html', graphs=graficos)
 
-@app.route('/logout')
-def logout():
-    session.pop('username', None)
-    return redirect(url_for('login'))
-
-
 
 
 '''
