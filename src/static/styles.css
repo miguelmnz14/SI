@@ -1,0 +1,165 @@
+/* Common styles for all pages */
+body {
+    padding-top: 20px;
+    background-color: #f8f9fa;
+}
+
+/* Card styles */
+.card {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    font-weight: bold;
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Stat cards used in dashboards */
+.stat-card {
+    text-align: center;
+    padding: 15px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    transition: transform 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0275d8;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Navigation styles */
+.nav-link {
+    color: #495057;
+}
+
+.nav-link.active {
+    background-color: #6c757d !important;
+    color: white !important;
+}
+
+/* Main header container */
+.header-container {
+    background-color: #343a40;
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+/* Table styles */
+.table-top-clientes, .table-top-tipos {
+    background-color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table-top-clientes th, .table-top-tipos th {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Button styles */
+.btn-back {
+    margin-top: 20px;
+}
+
+/* Group title styles */
+.group-title {
+    color: #343a40;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #6c757d;
+}
+
+/* Graph container and images */
+.graph-container {
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.graph-img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+}
+
+/* Prediction results styling */
+.prediction-result {
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.prediction-success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.prediction-critical {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+/* Model details */
+.model-header {
+    margin-top: 15px;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+/* Feature tables */
+.feature-table {
+    margin-top: 15px;
+}
+
+/* Login page specific styles */
+.login-container {
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.login-header {
+    background-color: #343a40;
+    color: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.btn-login {
+    background-color: #6c757d;
+    border: none;
+    padding: 10px;
+    font-weight: bold;
+    width: 100%;
+}
+
+.btn-login:hover {
+    background-color: #5a6268;
+}
+
+.form-control:focus {
+    border-color: #6c757d;
+    box-shadow: 0 0 0 0.25rem rgba(108, 117, 125, 0.25);
+}
