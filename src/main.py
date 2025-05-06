@@ -374,7 +374,6 @@ def top_tipos_incidencias():
     con.close()
 
     return render_template('top_tipos.html',top_tipos=top_tipos,top_x=x)
-
 '''
 
 EJERCICIO 2 Práctica 2
