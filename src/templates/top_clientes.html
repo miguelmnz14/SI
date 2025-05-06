@@ -8,13 +8,13 @@
     <link href="static/styles.css" rel="stylesheet">
 </head>
 <body>
-    <div class="container" id ="contenido">
+    <div class="container">
         {% with title='Top ' + top_x|string + ' Clientes con más Incidencias', subtitle='Análisis de clientes con mayor número de incidencias reportadas', active_page='top_clientes' %}
         {% include 'header.html' %}
         {% endwith %}
         <button onclick="descargarPDF()">Guardar como PDF</button>
 
-        <div class="row">
+        <div class="row" id ="contenido">
             <div class="col-md-12">
                 <div class="card">
                     <div class="card-header">
