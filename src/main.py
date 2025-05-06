@@ -333,7 +333,7 @@ EJERCICIO 1 Práctica 2
 @login_required
 def top_clientes():
     x = request.args.get('x', default=8, type=int)
-    mostrar_empleados = request.args.get('mostrar_empleados', default='no', type=str) == 'si'
+    mostrar_empleados = request.args.get('mostrar_empleados', default='si', type=str) == 'si'
 
     con = get_db_connection()
 
@@ -347,26 +347,10 @@ def top_clientes():
     """
     top_clientes = pd.read_sql(query_clientes, con, params=(x,)).to_dict('records')
 
-    top_empleados = []
-    if mostrar_empleados:
-        query_empleados = """
-            SELECT e.nombre AS empleado, SUM(t.tiempo_resolucion) AS tiempo_total,
-                  COUNT(t.id_ticket) AS num_incidencias,
-                  AVG(t.tiempo_resolucion) AS tiempo_promedio
-            FROM tickets_emitidos t
-            JOIN empleados e ON t.empleado_asignado = e.id_emp
-            GROUP BY t.empleado_asignado
-            ORDER BY tiempo_total DESC
-            LIMIT ?;
-        """
-        top_empleados = pd.read_sql(query_empleados, con, params=(x,)).to_dict('records')
-
-
     con.close()
 
     return render_template('top_clientes.html',
                            top_clientes=top_clientes,
-                           top_empleados=top_empleados,
                            mostrar_empleados=mostrar_empleados,
                            top_x=x)
 
